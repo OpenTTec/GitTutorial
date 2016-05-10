@@ -6,7 +6,7 @@ namespace GitTutorial.CodeMonkeys
   {
     //-------------------------------------------------------------------------
 
-    public override string GetName()
+    protected override string GetName()
     {
       return "GraemeB";
     }

@@ -35,9 +35,20 @@ namespace GitTutorial
 
     public void DoLogic()
     {
+      // Dead?
       if( Monkey.IsSmashed )
       {
         BackgroundImage = Resources.DeadCodeMonkey;
+      }
+      // Moving left?
+      else if( Monkey.VX < 0f )
+      {
+        BackgroundImage = Resources.CodeMonkeyFlipped;
+      }
+      // Moving right.
+      else
+      {
+        BackgroundImage = Resources.CodeMonkey;
       }
     }
 

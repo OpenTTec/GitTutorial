@@ -60,9 +60,23 @@ namespace GitTutorial {
             }
         }
         
+        internal static System.Drawing.Bitmap Background {
+            get {
+                object obj = ResourceManager.GetObject("Background", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap CodeMonkey {
             get {
                 object obj = ResourceManager.GetObject("CodeMonkey", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap CodeMonkeyFlipped {
+            get {
+                object obj = ResourceManager.GetObject("CodeMonkeyFlipped", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

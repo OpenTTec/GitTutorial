@@ -36,10 +36,10 @@
       this.uiName.AutoSize = true;
       this.uiName.BackColor = System.Drawing.Color.Transparent;
       this.uiName.Dock = System.Windows.Forms.DockStyle.Bottom;
-      this.uiName.Font = new System.Drawing.Font( "Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ( (byte)( 0 ) ) );
-      this.uiName.Location = new System.Drawing.Point( 0, 108 );
+      this.uiName.Font = new System.Drawing.Font( "Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ( (byte)( 0 ) ) );
+      this.uiName.Location = new System.Drawing.Point( 0, 113 );
       this.uiName.Name = "uiName";
-      this.uiName.Size = new System.Drawing.Size( 73, 20 );
+      this.uiName.Size = new System.Drawing.Size( 59, 15 );
       this.uiName.TabIndex = 0;
       this.uiName.Text = "<name>";
       this.uiName.TextAlign = System.Drawing.ContentAlignment.BottomCenter;

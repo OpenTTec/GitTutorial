@@ -100,12 +100,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="codemonkey2.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="deadcodemonkey.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\codemonkey.png" />
   </ItemGroup>
   <ItemGroup>

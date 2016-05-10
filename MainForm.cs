@@ -115,21 +115,22 @@ namespace GitTutorial
         point.X = (int)monkey.X;
         point.Y = (int)monkey.Y;
 
+        // Bounce back off sides of the screen.
         if( point.X < 0 )
         {
-          point.X = Width;
+          monkey.VX = -monkey.VX;
         }
-        if( point.X > Width - 5 )
+        if( point.X + lbl.Width > Width - 20 )
         {
-          point.X = 0;
+          monkey.VX = -monkey.VX;
         }
         if( point.Y < 0 )
         {
-          point.Y = Height - 50;
+          monkey.VY = -monkey.VY;
         }
-        if( point.Y > Height - 5 )
+        if( point.Y + lbl.Height > Height - 40 )
         {
-          point.Y = 0;
+          monkey.VY = -monkey.VY;
         }
 
         lbl.Location = point;

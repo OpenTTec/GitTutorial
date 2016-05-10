@@ -13,9 +13,7 @@ namespace GitTutorial
 
     private MonkeySmasher Smasher { get; set; }
     private Thread Runner { get; set; }
-    private List<CodeMonkeyControl> MonkeyControls { get; set; }
-
-    private const float c_repelFromEdgesForce = 0f;//.25f;
+    private List<Label> Labels { get; set; }
 
     //-------------------------------------------------------------------------
 
@@ -43,54 +41,26 @@ namespace GitTutorial
 
         throw ex;
       }
-    }
 
-    //-------------------------------------------------------------------------
-
-    protected override CreateParams CreateParams
-    {
-      get
-      {
-        // We want full double-buffering.
-        CreateParams cp = base.CreateParams;
-        cp.ExStyle |= 0x02000000;  // WS_EX_COMPOSITED
-        return cp;
-      }
-    }
-
-    //-------------------------------------------------------------------------
-
-    private void MainForm_Load( object sender, EventArgs e )
-    {
-      // Create form controls for each monkey.
+      // Create labels for each monkey.
       Random rnd = new Random();
-      MonkeyControls = new List<CodeMonkeyControl>();
+      Labels = new List<Label>();
 
       foreach( CodeMonkey monkey in Smasher.CodeMonkeys )
       {
-        monkey.X = 50 + (float)( rnd.NextDouble() * ( Width * 0.75 ) );
-        monkey.Y = 50 + (float)( rnd.NextDouble() * ( Height * 0.75 ) );
+        monkey.X = (float)( rnd.NextDouble() * 800 );
+        monkey.Y = (float)( rnd.NextDouble() * 800 );
 
-        CodeMonkeyControl monkeyControl = new CodeMonkeyControl( monkey );
-        monkeyControl.Tag = monkey;
+        Label lbl = new Label();
+        lbl.Text = monkey.GetName();
+        lbl.Tag = monkey;
+        lbl.AutoSize = true;
+        lbl.Dock = DockStyle.None;
+        lbl.ForeColor = monkey.GetFavouriteColour();
+        lbl.TextAlign = ContentAlignment.MiddleCenter;
 
-        monkey.Radius = monkeyControl.Radius;
-
-        MonkeyControls.Add( monkeyControl );
-        Controls.Add( monkeyControl );
-      }
-
-      // Only 1 monkey?
-      if( MonkeyControls.Count < 2 )
-      {
-        MessageBox.Show(
-          "There are not enough monkeys present, there will be no smashing!",
-          "Give me mooaaar monkeys!",
-          MessageBoxButtons.OK,
-          MessageBoxIcon.Exclamation );
-
-        Close();
-        return;
+        Labels.Add( lbl );
+        Controls.Add( lbl );
       }
       
       // Fire up the runner thread.
@@ -102,18 +72,15 @@ namespace GitTutorial
 
     private void MainForm_FormClosed( object sender, FormClosedEventArgs e )
     {
-      if( Runner != null )
-      {
-        Runner.Abort();
-        Runner.Join();
-      }
+      Runner.Abort();
+      Runner.Join();
     }
 
     //-------------------------------------------------------------------------
 
     private void Run()
     {
-      UpdateMonkeysDelegate updateDelegate = new UpdateMonkeysDelegate( UpdateMonkeys );
+      UpdateLabelsDelegate updateDelegate = new UpdateLabelsDelegate( UpdateLabels );
 
       while( Runner.IsAlive )
       {
@@ -123,7 +90,7 @@ namespace GitTutorial
 
           Invoke( updateDelegate );
 
-          Thread.Sleep( 10 );
+          Thread.Sleep( 1 );
         }
         catch
         {
@@ -134,81 +101,44 @@ namespace GitTutorial
 
     //-------------------------------------------------------------------------
 
-    private delegate void UpdateMonkeysDelegate();
+    private delegate void UpdateLabelsDelegate();
 
-    private void UpdateMonkeys()
+    private void UpdateLabels()
     {
       Point point = new Point();
-      List<CodeMonkeyControl> controlsToRemove = new List<CodeMonkeyControl>();
 
-      foreach( CodeMonkeyControl control in MonkeyControls )
+      foreach( Label lbl in Labels )
       {
-        CodeMonkey monkey = (CodeMonkey)control.Tag;
+        CodeMonkey monkey = (CodeMonkey)lbl.Tag;
 
         // Update position.
-        point.X = (int)( monkey.X - ( control.Width * 0.5 ) );
-        point.Y = (int)( monkey.Y - ( control.Height * 0.5 ) );
+        point.X = (int)monkey.X;
+        point.Y = (int)monkey.Y;
 
-        // Bounce back off sides of the screen.
         if( point.X < 0 )
         {
-          monkey.VX = -monkey.VX;
-          monkey.VX += c_repelFromEdgesForce;
+          point.X = Width;
         }
-        if( point.X + control.Width > Width - 20 )
+        if( point.X > Width - 5 )
         {
-          monkey.VX = -monkey.VX;
-          monkey.VX += -c_repelFromEdgesForce;
+          point.X = 0;
         }
         if( point.Y < 0 )
         {
-          monkey.VY = -monkey.VY;
-          monkey.VY += c_repelFromEdgesForce;
+          point.Y = Height - 50;
         }
-        if( point.Y + control.Height > Height - 40 )
+        if( point.Y > Height - 5 )
         {
-          monkey.VY = -monkey.VY;
-          monkey.VY += -c_repelFromEdgesForce;
+          point.Y = 0;
         }
 
-        control.Location = point;
-        control.DoLogic();
+        lbl.Location = point;
 
-        // Monkey died?
+        // Update colour.
         if( monkey.IsSmashed )
         {
-          control.SendToBack();
-          controlsToRemove.Add( control );
+          lbl.BackColor = Color.Red;
         }
-      }
-
-      // Clear out the dead bodies.
-      foreach( CodeMonkeyControl control in controlsToRemove )
-      {
-        MonkeyControls.Remove( control );
-      }
-
-      // Is there a winner?
-      if( MonkeyControls.Count == 1 )
-      {
-        MessageBox.Show(
-          ((CodeMonkey)MonkeyControls[ 0 ].Tag).GetSafeName() + " is victorious!",
-          "Victory!",
-          MessageBoxButtons.OK,
-          MessageBoxIcon.Exclamation );
-
-        Close();
-      }
-      // Everyone is dead?
-      else if( MonkeyControls.Count == 0 )
-      {
-        MessageBox.Show(
-          "Huh, fancy that... all the monkeys were smashed!",
-          "Dang!",
-          MessageBoxButtons.OK,
-          MessageBoxIcon.Exclamation );
-
-        Close();
       }
     }
 

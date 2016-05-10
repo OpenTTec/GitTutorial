@@ -2,20 +2,20 @@
 
 namespace GitTutorial.CodeMonkeys
 {
-  class GraemeB : CodeMonkey
+  class Test : CodeMonkey
   {
     //-------------------------------------------------------------------------
 
     public override string GetName()
     {
-      return "GraemeB";
+      return "T";
     }
 
     //-------------------------------------------------------------------------
 
     public override Color GetFavouriteColour()
     {
-      return Color.Black;
+      return Color.Blue;
     }
 
     //-------------------------------------------------------------------------

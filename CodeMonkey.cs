@@ -2,7 +2,7 @@
 
 namespace GitTutorial
 {
-  public abstract class CodeMonkey
+  abstract class CodeMonkey
   {
     //-------------------------------------------------------------------------
     // Properties.
@@ -22,28 +22,11 @@ namespace GitTutorial
     // Is smashed?
     public bool IsSmashed { get; set; }
 
-    // Monkey's radius.
-    public int Radius { get; set; }
-
     //-------------------------------------------------------------------------
     // Abstract methods.
 
-    protected abstract string GetName();
+    public abstract string GetName();
     public abstract Color GetFavouriteColour();
-
-    //-------------------------------------------------------------------------
-
-    public string GetSafeName()
-    {
-      string name = GetName();
-
-      if( name.Length == 0 )
-      {
-        return "The Nameless One";
-      }
-
-      return name;
-    }
 
     //-------------------------------------------------------------------------
   }

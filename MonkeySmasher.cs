@@ -15,22 +15,6 @@ namespace GitTutorial
     {
       public float x;
       public float y;
-
-      public void NormaliseVector()
-      {
-        float m = Magnitude();
-
-        if( m != 0f )
-        {
-          x /= m;
-          y /= m;
-        }
-      }
-
-      public float Magnitude()
-      {
-        return (float)Math.Sqrt( ( x * x ) + ( y * y ) );            
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -60,11 +44,11 @@ namespace GitTutorial
         CodeMonkeys.Add(
           (CodeMonkey)Activator.CreateInstance( type ) );
 
-        //// TODO: Remove extra adds, just for testing.
-        //CodeMonkeys.Add(
-        //  (CodeMonkey)Activator.CreateInstance( type ) );
-        //CodeMonkeys.Add(
-        //  (CodeMonkey)Activator.CreateInstance( type ) );
+        // TODO: Remove extra adds, just for testing.
+        CodeMonkeys.Add(
+          (CodeMonkey)Activator.CreateInstance( type ) );
+        CodeMonkeys.Add(
+          (CodeMonkey)Activator.CreateInstance( type ) );
       }
     }
 
@@ -93,10 +77,8 @@ namespace GitTutorial
     private void CalculateAttraction()
     {
       Vector from1To2 = new Vector();
-      Vector from2To1 = new Vector();
       float mass1;
       float mass2;
-      float totalMass;
       float distance;
 
       foreach( CodeMonkey monkey1 in CodeMonkeys )
@@ -108,17 +90,16 @@ namespace GitTutorial
 
         foreach( CodeMonkey monkey2 in CodeMonkeys )
         {
-          // Don't be attracted to one's self or dead monkeys.
+          // Don't be attracted to one's self.
           if( monkey1 == monkey2 ||
               monkey2.IsSmashed )
           {
             continue;
           }
 
-          // Get some required values.
-          mass1 = monkey1.GetSafeName().Length;
-          mass2 = monkey2.GetSafeName().Length;
-          totalMass = mass1 + mass2;
+          // Calculate attraction between both monkeys.
+          mass1 = monkey1.GetName().Length;
+          mass2 = monkey2.GetName().Length;
 
           distance =
             (float)Math.Sqrt(
@@ -127,32 +108,20 @@ namespace GitTutorial
 
           from1To2.x = monkey2.X - monkey1.X;
           from1To2.y = monkey2.Y - monkey1.Y;
-          from1To2.NormaliseVector();
 
-          from2To1.x = monkey1.X - monkey2.X;
-          from2To1.y = monkey1.Y - monkey2.Y;
-          from2To1.NormaliseVector();
+          NormaliseVector( ref from1To2 );
 
-          // Calculate attractive force.
-          // We're fudging a gravitational constant that works for us.
-          float f = -1e-1f * ( ( mass1 * mass2 ) / distance );
+          float f = -1e-2f * ( ( mass1 * mass2 ) / distance );
 
-          // Apply force to monkeys.
-          monkey1.FX += from2To1.x * ( f * ( totalMass / mass1 ) );
-          monkey1.FY += from2To1.y * ( f * ( totalMass / mass1 ) );
-
-          monkey2.FX += from1To2.x * ( f * ( totalMass / mass2 ) );
-          monkey2.FY += from1To2.y * ( f * ( totalMass / mass2 ) );
+          monkey2.FX += from1To2.x * f;
+          monkey2.FY += from1To2.y * f;
 
           // Smash the monkeys if they get too close together.
-          if( distance < ( monkey1.Radius + monkey2.Radius ) * 0.5 )
+          if( distance < 10f )
           {
-            float speedSqr1 = ( monkey1.VX * monkey1.VX ) + ( monkey1.VY * monkey1.VY );
-            float speedSqr2 = ( monkey2.VX * monkey2.VX ) + ( monkey2.VY * monkey2.VY );
-
-            // Faster monkey wins.
-            monkey1.IsSmashed = speedSqr2 > speedSqr1;
-            monkey2.IsSmashed = !monkey1.IsSmashed;
+            monkey1.IsSmashed = mass2 >= mass1;
+            monkey2.IsSmashed = mass1 >= mass2;
+            continue;
           }
         }
       }
@@ -172,6 +141,21 @@ namespace GitTutorial
           monkey.X += monkey.VX;
           monkey.Y += monkey.VY;
         }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+
+    static private void NormaliseVector( ref Vector vector )
+    {
+      float len =
+        (float)Math.Sqrt(
+          ( vector.x * vector.x ) + ( vector.y * vector.y ) );
+
+      if( len != 0f )
+      {
+        vector.x /= len;
+        vector.y /= len;
       }
     }
 

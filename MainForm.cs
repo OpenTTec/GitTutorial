@@ -15,14 +15,58 @@ namespace GitTutorial
     private Thread Runner { get; set; }
     private List<CodeMonkeyControl> MonkeyControls { get; set; }
 
-    private const float c_repelFromEdgesForce = 0f;//.25f;
-
     //-------------------------------------------------------------------------
 
     public MainForm()
     {
-      // Init the UI.
+      DoubleBuffered = true;
+
       InitializeComponent();
+
+      BackgroundImage = Resources.Background;
+    }
+
+    //-------------------------------------------------------------------------
+
+    protected override CreateParams CreateParams
+    {
+      get
+      {
+        // We want full double-buffering.
+        CreateParams cp = base.CreateParams;
+        cp.ExStyle |= 0x02000000;  // WS_EX_COMPOSITED
+        return cp;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+
+    private void MainForm_Load( object sender, EventArgs e )
+    {
+      NewRound();
+    }
+
+    //-------------------------------------------------------------------------
+
+    private void MainForm_FormClosed( object sender, FormClosedEventArgs e )
+    {
+      if( Runner != null )
+      {
+        Runner.Abort();
+        Runner.Join();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+
+    private void NewRound()
+    {
+      // If there was a prev round running, end the runner thread.
+      if( Runner != null )
+      {
+        Runner.Abort();
+        Runner.Join();
+      }
 
       // Fire up the smasher.
       try
@@ -43,26 +87,10 @@ namespace GitTutorial
 
         throw ex;
       }
-    }
 
-    //-------------------------------------------------------------------------
-
-    protected override CreateParams CreateParams
-    {
-      get
-      {
-        // We want full double-buffering.
-        CreateParams cp = base.CreateParams;
-        cp.ExStyle |= 0x02000000;  // WS_EX_COMPOSITED
-        return cp;
-      }
-    }
-
-    //-------------------------------------------------------------------------
-
-    private void MainForm_Load( object sender, EventArgs e )
-    {
       // Create form controls for each monkey.
+      Controls.Clear();
+
       Random rnd = new Random();
       MonkeyControls = new List<CodeMonkeyControl>();
 
@@ -70,6 +98,9 @@ namespace GitTutorial
       {
         monkey.X = 50 + (float)( rnd.NextDouble() * ( Width * 0.75 ) );
         monkey.Y = 50 + (float)( rnd.NextDouble() * ( Height * 0.75 ) );
+
+        //monkey.VX = (float)( rnd.NextDouble() * 100.5 );
+        //monkey.VY = (float)( rnd.NextDouble() * 100.5 );
 
         CodeMonkeyControl monkeyControl = new CodeMonkeyControl( monkey );
         monkeyControl.Tag = monkey;
@@ -92,21 +123,10 @@ namespace GitTutorial
         Close();
         return;
       }
-      
+
       // Fire up the runner thread.
       Runner = new Thread( new ThreadStart( Run ) );
       Runner.Start();
-    }
-
-    //-------------------------------------------------------------------------
-
-    private void MainForm_FormClosed( object sender, FormClosedEventArgs e )
-    {
-      if( Runner != null )
-      {
-        Runner.Abort();
-        Runner.Join();
-      }
     }
 
     //-------------------------------------------------------------------------
@@ -119,7 +139,7 @@ namespace GitTutorial
       {
         try
         {
-          Smasher.SmashTheCodeMonkeys();
+          Smasher.SmashTheCodeMonkeys( 0.001f );
 
           Invoke( updateDelegate );
 
@@ -127,7 +147,7 @@ namespace GitTutorial
         }
         catch
         {
-          // Ignore the interrupted exception.
+          // Ignore the thread interrupted exception.
         }
       }
     }
@@ -140,7 +160,10 @@ namespace GitTutorial
     {
       Point point = new Point();
       List<CodeMonkeyControl> controlsToRemove = new List<CodeMonkeyControl>();
+      bool roundIsComplete = false;
+      string roundCompleteMsg = "";
 
+      // Update each monkey.
       foreach( CodeMonkeyControl control in MonkeyControls )
       {
         CodeMonkey monkey = (CodeMonkey)control.Tag;
@@ -153,22 +176,18 @@ namespace GitTutorial
         if( point.X < 0 )
         {
           monkey.VX = -monkey.VX;
-          monkey.VX += c_repelFromEdgesForce;
         }
         if( point.X + control.Width > Width - 20 )
         {
           monkey.VX = -monkey.VX;
-          monkey.VX += -c_repelFromEdgesForce;
         }
         if( point.Y < 0 )
         {
           monkey.VY = -monkey.VY;
-          monkey.VY += c_repelFromEdgesForce;
         }
         if( point.Y + control.Height > Height - 40 )
         {
           monkey.VY = -monkey.VY;
-          monkey.VY += -c_repelFromEdgesForce;
         }
 
         control.Location = point;
@@ -188,27 +207,39 @@ namespace GitTutorial
         MonkeyControls.Remove( control );
       }
 
-      // Is there a winner?
+      // Round is complete?
       if( MonkeyControls.Count == 1 )
       {
-        MessageBox.Show(
-          ((CodeMonkey)MonkeyControls[ 0 ].Tag).GetSafeName() + " is victorious!",
-          "Victory!",
-          MessageBoxButtons.OK,
-          MessageBoxIcon.Exclamation );
-
-        Close();
+        roundIsComplete = true;
+        roundCompleteMsg =
+          ((CodeMonkey)MonkeyControls[ 0 ].Tag).GetSafeName() + " is victorious!";
       }
-      // Everyone is dead?
       else if( MonkeyControls.Count == 0 )
       {
-        MessageBox.Show(
-          "Huh, fancy that... all the monkeys were smashed!",
-          "Dang!",
-          MessageBoxButtons.OK,
-          MessageBoxIcon.Exclamation );
+        roundIsComplete = true;
+        roundCompleteMsg = "Huh, fancy that... all the monkeys were smashed!";
+      }
 
-        Close();
+      // If round is complete display a message and ask the user
+      // if another round is in order.
+      if( roundIsComplete )
+      {
+        DialogResult result =
+          MessageBox.Show(
+            roundCompleteMsg +
+              Environment.NewLine + Environment.NewLine +
+              "Is more smashing in order?",
+            "Round Complete!",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Exclamation );
+
+        if( result == DialogResult.No )
+        {
+          Close();
+          return;
+        }
+
+        NewRound();
       }
     }
 

@@ -9,7 +9,16 @@ namespace GitTutorial
   {
     //-------------------------------------------------------------------------
 
+    // Should be zero, but adds duplicate monkeys for debugging purposes.
+    private const int c_debugging_extraMonkeyCount = 0;
+
+    // We're fudging a gravitational constant that works for us.
+    private const float c_gravitationalConstant = 1e4f;
+
+    // List of all the instantiated monkeys.
     public List< CodeMonkey > CodeMonkeys { get; private set; }
+
+    //-------------------------------------------------------------------------
 
     struct Vector
     {
@@ -60,21 +69,22 @@ namespace GitTutorial
         CodeMonkeys.Add(
           (CodeMonkey)Activator.CreateInstance( type ) );
 
-        // TODO: Remove extra adds, just for testing.
-        //CodeMonkeys.Add(
-        //  (CodeMonkey)Activator.CreateInstance( type ) );
-        //CodeMonkeys.Add(
-        //  (CodeMonkey)Activator.CreateInstance( type ) );
+        // For debugging purposes, add some extra monkeys.
+        for( int i = 0; i < c_debugging_extraMonkeyCount; i++ )
+        {
+          CodeMonkeys.Add(
+            (CodeMonkey)Activator.CreateInstance( type ) );
+        }
       }
     }
 
     //-------------------------------------------------------------------------
 
-    public void SmashTheCodeMonkeys()
+    public void SmashTheCodeMonkeys( float deltaTime )
     {
       ZeroAllForces();
       CalculateAttraction();
-      MoveMonkeys();
+      MoveMonkeys( deltaTime );
     }
 
     //-------------------------------------------------------------------------
@@ -93,7 +103,6 @@ namespace GitTutorial
     private void CalculateAttraction()
     {
       Vector from1To2 = new Vector();
-      Vector from2To1 = new Vector();
       float mass1;
       float mass2;
       float totalMass;
@@ -129,17 +138,12 @@ namespace GitTutorial
           from1To2.y = monkey2.Y - monkey1.Y;
           from1To2.NormaliseVector();
 
-          from2To1.x = monkey1.X - monkey2.X;
-          from2To1.y = monkey1.Y - monkey2.Y;
-          from2To1.NormaliseVector();
-
           // Calculate attractive force.
-          // We're fudging a gravitational constant that works for us.
-          float f = -1e-1f * ( ( mass1 * mass2 ) / distance );
+          float f = -c_gravitationalConstant * ( ( mass1 * mass2 ) / distance );
 
           // Apply force to monkeys.
-          monkey1.FX += from2To1.x * ( f * ( totalMass / mass1 ) );
-          monkey1.FY += from2To1.y * ( f * ( totalMass / mass1 ) );
+          monkey1.FX += from1To2.x * ( -f * ( totalMass / mass1 ) );
+          monkey1.FY += from1To2.y * ( -f * ( totalMass / mass1 ) );
 
           monkey2.FX += from1To2.x * ( f * ( totalMass / mass2 ) );
           monkey2.FY += from1To2.y * ( f * ( totalMass / mass2 ) );
@@ -160,17 +164,21 @@ namespace GitTutorial
 
     //-------------------------------------------------------------------------
 
-    private void MoveMonkeys()
+    private void MoveMonkeys( float deltaTime )
     {
       foreach( CodeMonkey monkey in CodeMonkeys )
       {
         if( monkey.IsSmashed == false )
         {
-          monkey.VX += monkey.FX;
-          monkey.VY += monkey.FY;
+          monkey.VX += monkey.FX * deltaTime;
+          monkey.VY += monkey.FY * deltaTime;
 
-          monkey.X += monkey.VX;
-          monkey.Y += monkey.VY;
+          monkey.X += monkey.VX * deltaTime;
+          monkey.Y += monkey.VY * deltaTime;
+
+          // Apply some drag, this helps to keep the rounds from dragging on.
+          monkey.VX *= 0.99f;
+          monkey.VY *= 0.99f;
         }
       }
     }

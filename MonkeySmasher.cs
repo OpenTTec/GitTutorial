@@ -60,7 +60,7 @@ namespace GitTutorial
         CodeMonkeys.Add(
           (CodeMonkey)Activator.CreateInstance( type ) );
 
-        //// TODO: Remove extra adds, just for testing.
+        // TODO: Remove extra adds, just for testing.
         //CodeMonkeys.Add(
         //  (CodeMonkey)Activator.CreateInstance( type ) );
         //CodeMonkeys.Add(

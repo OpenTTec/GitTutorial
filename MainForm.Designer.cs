@@ -38,12 +38,14 @@
       this.Name = "MainForm";
       this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
       this.Text = "Git Tutorial";
+      this.Load += new System.EventHandler( this.MainForm_Load );
       this.FormClosed += new System.Windows.Forms.FormClosedEventHandler( this.MainForm_FormClosed );
       this.ResumeLayout( false );
 
     }
 
     #endregion
+
   }
 }
 

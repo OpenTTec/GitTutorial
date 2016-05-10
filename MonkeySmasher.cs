@@ -15,6 +15,22 @@ namespace GitTutorial
     {
       public float x;
       public float y;
+
+      public void NormaliseVector()
+      {
+        float m = Magnitude();
+
+        if( m != 0f )
+        {
+          x /= m;
+          y /= m;
+        }
+      }
+
+      public float Magnitude()
+      {
+        return (float)Math.Sqrt( ( x * x ) + ( y * y ) );            
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -109,7 +125,7 @@ namespace GitTutorial
           from1To2.x = monkey2.X - monkey1.X;
           from1To2.y = monkey2.Y - monkey1.Y;
 
-          NormaliseVector( ref from1To2 );
+          from1To2.NormaliseVector();
 
           float f = -1e-2f * ( ( mass1 * mass2 ) / distance );
 
@@ -141,21 +157,6 @@ namespace GitTutorial
           monkey.X += monkey.VX;
           monkey.Y += monkey.VY;
         }
-      }
-    }
-
-    //-------------------------------------------------------------------------
-
-    static private void NormaliseVector( ref Vector vector )
-    {
-      float len =
-        (float)Math.Sqrt(
-          ( vector.x * vector.x ) + ( vector.y * vector.y ) );
-
-      if( len != 0f )
-      {
-        vector.x /= len;
-        vector.y /= len;
       }
     }
 

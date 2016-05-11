@@ -81,9 +81,9 @@ namespace GitTutorial {
             }
         }
         
-        internal static System.Drawing.Bitmap DeadCodeMonkey {
+        internal static System.Drawing.Bitmap Gibs {
             get {
-                object obj = ResourceManager.GetObject("DeadCodeMonkey", resourceCulture);
+                object obj = ResourceManager.GetObject("Gibs", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

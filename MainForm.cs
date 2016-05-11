@@ -14,6 +14,8 @@ namespace GitTutorial
     private MonkeySmasher Smasher { get; set; }
     private Thread Runner { get; set; }
     private volatile bool _stopThread = false;
+    private volatile bool _isRoundActive = false;
+    private volatile bool _allowWindowClose = false;
     private List<CodeMonkeyControl> MonkeyControls { get; set; }
 
     //-------------------------------------------------------------------------
@@ -47,21 +49,25 @@ namespace GitTutorial
     private void MainForm_Load( object sender, EventArgs e )
     {
       NewRound();
+
+      Runner = new Thread( new ThreadStart( Run ) );
+      Runner.Start();
     }
 
     //-------------------------------------------------------------------------
 
     private void MainForm_FormClosing( object sender, FormClosingEventArgs e )
     {
-      EndRound();
+      EndGame();
+
+      e.Cancel = _allowWindowClose;
     }
 
     //-------------------------------------------------------------------------
 
     private void NewRound()
     {
-      // If there was a prev round running, end the runner thread.
-      EndRound();
+      _isRoundActive = false;
 
       // Fire up the smasher.
       try
@@ -120,48 +126,40 @@ namespace GitTutorial
         return;
       }
 
-      // Fire up the runner thread.
-      System.Diagnostics.Debug.Assert( Runner == null );
-
-      _stopThread = false;
-      Runner = new Thread( new ThreadStart( Run ) );
-      Runner.Start();
+      _isRoundActive = true;
     }
 
     //-------------------------------------------------------------------------
 
-    private void EndRound()
+    private void EndGame()
     {
       _stopThread = true;
-
-      if( Runner != null )
-      {
-        Runner.Join();
-        Runner = null;
-      }
     }
 
     //-------------------------------------------------------------------------
 
     private void Run()
     {
-      PerformGameStepDelegate updateDelegate = new PerformGameStepDelegate( PerformGameStep );
+      PerformGameStepDelegate gameStepDelegate = new PerformGameStepDelegate( PerformGameStep );
 
       while( _stopThread == false )
       {
         try
         {
-          Smasher.SmashTheCodeMonkeys( Constants.c_timeStep );
-
-          if( InvokeRequired )
+          // Perform a game step if there's currently an active round.
+          if( _isRoundActive )
           {
-            Invoke( updateDelegate );
-          }
-          else
-          {
-            PerformGameStep();
+            if( InvokeRequired )
+            {
+              Invoke( gameStepDelegate );
+            }
+            else
+            {
+              PerformGameStep();
+            }
           }
 
+          // Sleep for a bit.
           Thread.Sleep( (int)( Constants.c_timeStep * 1000 ) );
         }
         catch
@@ -169,9 +167,21 @@ namespace GitTutorial
           // Ignore the thread interrupted exception and any others.
         }
       }
+
+      // Close the window.
+      if( InvokeRequired )
+      {
+        BeginInvoke( new CloseWindowDelegate( CloseWindow ) );
+      }
+      else
+      {
+        CloseWindow();
+      }
     }
 
     //-------------------------------------------------------------------------
+
+    // Returns 'false' when game is over.
 
     private delegate void PerformGameStepDelegate();
 
@@ -179,8 +189,10 @@ namespace GitTutorial
     {
       Point point = new Point();
       List<CodeMonkeyControl> controlsToRemove = new List<CodeMonkeyControl>();
-      bool roundIsComplete = false;
       string roundCompleteMsg = "";
+
+      // Let smasher run to update the monkeys.
+      Smasher.SmashTheCodeMonkeys( Constants.c_timeStep );
 
       // Update each monkey.
       foreach( CodeMonkeyControl control in MonkeyControls )
@@ -233,19 +245,19 @@ namespace GitTutorial
       // Round is complete?
       if( MonkeyControls.Count == 1 )
       {
-        roundIsComplete = true;
+        _isRoundActive = false;
         roundCompleteMsg =
           ((CodeMonkey)MonkeyControls[ 0 ].Tag).GetSafeName() + " is victorious!";
       }
       else if( MonkeyControls.Count == 0 )
       {
-        roundIsComplete = true;
+        _isRoundActive = false;
         roundCompleteMsg = "Huh, fancy that... all the monkeys were smashed!";
       }
 
       // If round is complete display a message and ask the user
       // if another round is in order.
-      if( roundIsComplete )
+      if( _isRoundActive == false )
       {
         DialogResult result =
           MessageBox.Show(
@@ -264,6 +276,8 @@ namespace GitTutorial
 
         NewRound();
       }
+
+      return;
     }
 
     //-------------------------------------------------------------------------
@@ -290,6 +304,16 @@ namespace GitTutorial
           monkey.Y = Height - control.Height;
         }
       }
+    }
+
+    //-------------------------------------------------------------------------
+
+    private delegate void CloseWindowDelegate();
+
+    private void CloseWindow()
+    {
+      _allowWindowClose = true;
+      Close();
     }
 
     //-------------------------------------------------------------------------

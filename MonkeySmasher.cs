@@ -9,12 +9,6 @@ namespace GitTutorial
   {
     //-------------------------------------------------------------------------
 
-    // Should be zero, but adds duplicate monkeys for debugging purposes.
-    private const int c_debugging_extraMonkeyCount = 0;
-
-    // We're fudging a gravitational constant that works for us.
-    private const float c_gravitationalConstant = 1e4f;
-
     // List of all the instantiated monkeys.
     public List< CodeMonkey > CodeMonkeys { get; private set; }
 
@@ -70,7 +64,7 @@ namespace GitTutorial
           (CodeMonkey)Activator.CreateInstance( type ) );
 
         // For debugging purposes, add some extra monkeys.
-        for( int i = 0; i < c_debugging_extraMonkeyCount; i++ )
+        for( int i = 0; i < Constants.c_debugging_extraMonkeyCount; i++ )
         {
           CodeMonkeys.Add(
             (CodeMonkey)Activator.CreateInstance( type ) );
@@ -139,7 +133,7 @@ namespace GitTutorial
           from1To2.NormaliseVector();
 
           // Calculate attractive force.
-          float f = -c_gravitationalConstant * ( ( mass1 * mass2 ) / distance );
+          float f = -Constants.c_gravitationalConstant * ( ( mass1 * mass2 ) / distance );
 
           // Apply force to monkeys.
           monkey1.FX += from1To2.x * ( -f * ( totalMass / mass1 ) );
@@ -177,8 +171,8 @@ namespace GitTutorial
           monkey.Y += monkey.VY * deltaTime;
 
           // Apply some drag, this helps to keep the rounds from dragging on.
-          monkey.VX *= 0.99f;
-          monkey.VY *= 0.99f;
+          monkey.VX *= Constants.c_dragFactor;
+          monkey.VY *= Constants.c_dragFactor;
         }
       }
     }

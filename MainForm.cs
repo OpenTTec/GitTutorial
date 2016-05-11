@@ -13,6 +13,7 @@ namespace GitTutorial
 
     private MonkeySmasher Smasher { get; set; }
     private Thread Runner { get; set; }
+    private volatile bool _stopThread = false;
     private List<CodeMonkeyControl> MonkeyControls { get; set; }
 
     //-------------------------------------------------------------------------
@@ -24,6 +25,8 @@ namespace GitTutorial
       InitializeComponent();
 
       BackgroundImage = Resources.Background;
+
+      WindowState = FormWindowState.Normal;
     }
 
     //-------------------------------------------------------------------------
@@ -48,13 +51,9 @@ namespace GitTutorial
 
     //-------------------------------------------------------------------------
 
-    private void MainForm_FormClosed( object sender, FormClosedEventArgs e )
+    private void MainForm_FormClosing( object sender, FormClosingEventArgs e )
     {
-      if( Runner != null )
-      {
-        Runner.Abort();
-        Runner.Join();
-      }
+      EndRound();
     }
 
     //-------------------------------------------------------------------------
@@ -62,11 +61,7 @@ namespace GitTutorial
     private void NewRound()
     {
       // If there was a prev round running, end the runner thread.
-      if( Runner != null )
-      {
-        Runner.Abort();
-        Runner.Join();
-      }
+      EndRound();
 
       // Fire up the smasher.
       try
@@ -99,8 +94,9 @@ namespace GitTutorial
         monkey.X = 50 + (float)( rnd.NextDouble() * ( Width * 0.75 ) );
         monkey.Y = 50 + (float)( rnd.NextDouble() * ( Height * 0.75 ) );
 
-        //monkey.VX = (float)( rnd.NextDouble() * 100.5 );
-        //monkey.VY = (float)( rnd.NextDouble() * 100.5 );
+        const float halfMaxV = Constants.c_initialMaxV * 0.5f;
+        monkey.VX = halfMaxV - (float)rnd.NextDouble() * Constants.c_initialMaxV;
+        monkey.VY = halfMaxV - (float)rnd.NextDouble() * Constants.c_initialMaxV;
 
         CodeMonkeyControl monkeyControl = new CodeMonkeyControl( monkey );
         monkeyControl.Tag = monkey;
@@ -125,38 +121,61 @@ namespace GitTutorial
       }
 
       // Fire up the runner thread.
+      System.Diagnostics.Debug.Assert( Runner == null );
+
+      _stopThread = false;
       Runner = new Thread( new ThreadStart( Run ) );
       Runner.Start();
     }
 
     //-------------------------------------------------------------------------
 
+    private void EndRound()
+    {
+      _stopThread = true;
+
+      if( Runner != null )
+      {
+        Runner.Join();
+        Runner = null;
+      }
+    }
+
+    //-------------------------------------------------------------------------
+
     private void Run()
     {
-      UpdateMonkeysDelegate updateDelegate = new UpdateMonkeysDelegate( UpdateMonkeys );
+      PerformGameStepDelegate updateDelegate = new PerformGameStepDelegate( PerformGameStep );
 
-      while( Runner.IsAlive )
+      while( _stopThread == false )
       {
         try
         {
-          Smasher.SmashTheCodeMonkeys( 0.001f );
+          Smasher.SmashTheCodeMonkeys( Constants.c_timeStep );
 
-          Invoke( updateDelegate );
+          if( InvokeRequired )
+          {
+            Invoke( updateDelegate );
+          }
+          else
+          {
+            PerformGameStep();
+          }
 
-          Thread.Sleep( 10 );
+          Thread.Sleep( (int)( Constants.c_timeStep * 1000 ) );
         }
         catch
         {
-          // Ignore the thread interrupted exception.
+          // Ignore the thread interrupted exception and any others.
         }
       }
     }
 
     //-------------------------------------------------------------------------
 
-    private delegate void UpdateMonkeysDelegate();
+    private delegate void PerformGameStepDelegate();
 
-    private void UpdateMonkeys()
+    private void PerformGameStep()
     {
       Point point = new Point();
       List<CodeMonkeyControl> controlsToRemove = new List<CodeMonkeyControl>();
@@ -175,19 +194,23 @@ namespace GitTutorial
         // Bounce back off sides of the screen.
         if( point.X < 0 )
         {
-          monkey.VX = -monkey.VX;
+          monkey.VX = Math.Abs( monkey.VX );
+          monkey.VX += Constants.c_boundryRepulsionForce;
         }
         if( point.X + control.Width > Width - 20 )
         {
-          monkey.VX = -monkey.VX;
+          monkey.VX = -Math.Abs( monkey.VX );
+          monkey.VX += -Constants.c_boundryRepulsionForce;
         }
         if( point.Y < 0 )
         {
-          monkey.VY = -monkey.VY;
+          monkey.VY = Math.Abs( monkey.VY );
+          monkey.VY += Constants.c_boundryRepulsionForce;
         }
         if( point.Y + control.Height > Height - 40 )
         {
-          monkey.VY = -monkey.VY;
+          monkey.VY = -Math.Abs( monkey.VY );
+          monkey.VY += -Constants.c_boundryRepulsionForce;
         }
 
         control.Location = point;
@@ -240,6 +263,32 @@ namespace GitTutorial
         }
 
         NewRound();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+
+    private void MainForm_Resize( object sender, EventArgs e )
+    {
+      if( MonkeyControls == null )
+      {
+        return;
+      }
+
+      // If any monkey falls beyond the new window edges, clip it back.
+      foreach( CodeMonkeyControl control in MonkeyControls )
+      {
+        CodeMonkey monkey = (CodeMonkey)control.Tag;
+
+        if( monkey.X + control.Width > Width )
+        {
+          monkey.X = Width - control.Width;
+        }
+
+        if( monkey.Y + control.Height > Height )
+        {
+          monkey.Y = Height - control.Height;
+        }
       }
     }
 

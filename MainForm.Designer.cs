@@ -42,7 +42,8 @@
       this.Text = "Git Tutorial";
       this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
       this.Load += new System.EventHandler( this.MainForm_Load );
-      this.FormClosed += new System.Windows.Forms.FormClosedEventHandler( this.MainForm_FormClosed );
+      this.FormClosing += new System.Windows.Forms.FormClosingEventHandler( this.MainForm_FormClosing );
+      this.Resize += new System.EventHandler( this.MainForm_Resize );
       this.ResumeLayout( false );
 
     }

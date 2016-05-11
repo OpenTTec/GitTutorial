@@ -55,6 +55,7 @@
       <DependentUpon>CodeMonkeyControl.cs</DependentUpon>
     </Compile>
     <Compile Include="CodeMonkeys\GraemeB.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -23,7 +23,7 @@
     // Debugging.
 
     // Should be zero, adds duplicate monkeys for debugging purposes.
-    public const int c_debugging_extraMonkeyCount = 5;
+    public const int c_debugging_extraMonkeyCount = 0;
 
     //-------------------------------------------------------------------------
   }

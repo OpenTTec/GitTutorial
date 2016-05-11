@@ -27,8 +27,6 @@ namespace GitTutorial
       InitializeComponent();
 
       BackgroundImage = Resources.Background;
-
-      WindowState = FormWindowState.Normal;
     }
 
     //-------------------------------------------------------------------------

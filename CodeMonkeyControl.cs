@@ -38,7 +38,10 @@ namespace GitTutorial
       // Dead?
       if( Monkey.IsSmashed )
       {
-        BackgroundImage = Resources.DeadCodeMonkey;
+        float r = (float)Resources.Gibs.Height / (float)Resources.Gibs.Width;
+        this.Height = (int)( this.Width * r );
+
+        BackgroundImage = Resources.Gibs;
       }
       // Moving left?
       else if( Monkey.VX < 0f )

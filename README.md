@@ -1,2 +1,2 @@
 # GitTutorial
-Simple project for a Git tutorial.
+A simple project for a Git tutorial.

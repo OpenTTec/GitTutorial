@@ -54,6 +54,7 @@
     <Compile Include="CodeMonkeyControl.Designer.cs">
       <DependentUpon>CodeMonkeyControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="CodeMonkeys\IrfaanK.cs" />
     <Compile Include="CodeMonkeys\RonaldM.cs" />
     <Compile Include="CodeMonkeys\TestUser.cs" />
     <Compile Include="CodeMonkeys\GraemeB.cs" />
